@@ -85,13 +85,12 @@ class PlotHandler():
         self.limit = scaledValue
     
     def selectCsv(self):
-        dlg.setFileMode(qtgqt.QtGui.QFileDialog.AnyFile)
-        dlg.selectNameFilter("CSV files (*.csv)")
         dlg_open = QtGui.QFileDialog()
         dlg_open.setFileMode(qtgqt.QtGui.QFileDialog.AnyFile)
         dlg_open.selectNameFilter("CSV files (*.csv)")
         filenames = QtCore.QStringListModel()
         if dlg_open.exec_():
+            filenames = dlg_open.selectedFiles()
             self.csv1Label.setText(os.path.basename(str(filenames[0])))
             self.filename = str(filenames[0])
 
