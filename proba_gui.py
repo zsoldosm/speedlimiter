@@ -42,29 +42,28 @@ class PlotHandler():
         self.win.setCentralWidget(area)
         dock1 = darea.Dock("Params", size = (1,1))  # give this dock minimum possible size
         dock2 = darea.Dock("Diagrams to compare", size = (500,400)) # size is only a suggestion
-        area.addDock(dock1, "left")
+        area.addDock(dock1, "top")
         area.addDock(dock2, "bottom", dock1)
         widg1 = pg.LayoutWidget()
         self.csv1Label = QtGui.QLabel("none"); self.csv1Label.setAlignment(pg.QtCore.Qt.AlignCenter)
-        self.selectFile1Btn = QtGui.QPushButton("Select file")
+        self.selectFileBtn = QtGui.QPushButton("Select file")
+        self.saveFileBtn = QtGui.QPushButton("Save file")
         self.update_d = QtGui.QPushButton("Generate!")
-        self.selectFile1Btn.setMaximumWidth(100)
         self.slider = QSlider(QtCore.Qt.Horizontal)
         self.slider.setRange(0, 100)
         self.slider.setSingleStep(1)
-        self.sliderLabel = QtGui.QLabel("Limit slider"); self.sliderLabel.setAlignment(pg.QtCore.Qt.AlignCenter)
         self.slidervalue = QtGui.QLabel("- m/s^2"); self.slidervalue.setAlignment(pg.QtCore.Qt.AlignCenter)
-        widg1.setStyleSheet("background-color: rgb(40, 44, 52); color: rgb(171, 178, 191);")
-        dock1.setStyleSheet("background-color: rgb(18, 20, 23);")
-        self.csv1Label.setStyleSheet("font: 10pt; color: rgb(6, 106, 166)") # blue
-        self.sliderLabel.setStyleSheet("font: 10pt; color: rgb(244, 244, 160)") # yellow
-        self.slidervalue.setStyleSheet("font: 10pt; color: rgb(244, 244, 160)") # yellow
-        widg1.addWidget(self.selectFile1Btn, row=1, col=2)
+        widg1.setStyleSheet("background-color: rgb(255, 255, 255); color: rgb(40, 40, 40);")
+        dock1.setStyleSheet("background-color: rgb(255, 255, 255);")
+        dock2.setStyleSheet("background-color: rgb(255, 255, 255);")
+        self.csv1Label.setStyleSheet("font: 12pt; color: rgb(40, 40, 40)")
+        self.slidervalue.setStyleSheet("font: 10pt; color: rgb(40, 40, 40)")
+        widg1.addWidget(self.selectFileBtn, row=1, col=2)
+        widg1.addWidget(self.saveFileBtn, row=1, col=3)
         widg1.addWidget(self.csv1Label, row=1, col=1)
-        widg1.addWidget(self.update_d, row=1, col=3)
+        widg1.addWidget(self.update_d, row=2, col=3)
         widg1.addWidget(self.slider, row=2, col=1)
         widg1.addWidget(self.slidervalue, row=2, col=2)
-        widg1.addWidget(self.sliderLabel, row=2, col=3)
         dock1.addWidget(widg1)
         self.state = None
         self.widg2 = MplCanvas(self, width=5, height=4, dpi=100)
@@ -73,7 +72,8 @@ class PlotHandler():
         if ((self.filename != "") and (self.limit > 0.0)):
             self.update_plot()
 
-        self.selectFile1Btn.clicked.connect(self.selectCsv)
+        self.selectFileBtn.clicked.connect(self.selectCsv)
+        self.saveFileBtn.clicked.connect(self.saveCsv)
         self.textSpeedArray = np.empty(1, dtype=object)
         self.slider.valueChanged.connect(self.ValueHandler)
         self.update_d.clicked.connect(self.update_plot)
@@ -85,14 +85,39 @@ class PlotHandler():
         self.limit = scaledValue
     
     def selectCsv(self):
-        dlg = QtGui.QFileDialog()
         dlg.setFileMode(qtgqt.QtGui.QFileDialog.AnyFile)
         dlg.selectNameFilter("CSV files (*.csv)")
+        dlg_open = QtGui.QFileDialog()
+        dlg_open.setFileMode(qtgqt.QtGui.QFileDialog.AnyFile)
+        dlg_open.selectNameFilter("CSV files (*.csv)")
         filenames = QtCore.QStringListModel()
-        if dlg.exec_():
-            filenames = dlg.selectedFiles()
+        if dlg_open.exec_():
             self.csv1Label.setText(os.path.basename(str(filenames[0])))
             self.filename = str(filenames[0])
+
+    def saveCsv(self):
+        dlg_save = QtGui.QFileDialog()
+        dlg_save.setFileMode(qtgqt.QtGui.QFileDialog.AnyFile)
+        dlg_save.selectNameFilter("CSV files (*.csv)")
+        sfn = QtCore.QStringListModel()
+        if dlg_save.exec_():
+            sfn = dlg_save.selectedFiles()
+            save_fname_v = str(sfn[0]) + "_comp_velo.csv"
+            save_fname_a = str(sfn[0]) + "_comp_acc.csv"
+            lim = np.asarray(self.limiter(), order='F')
+            ora = np.asarray(self.del_accelerate(), order='F')
+            lima = np.asarray(self.del_accelerate_l(), order='F')
+            df1 = pd.DataFrame({
+                'Original_v': self.data()["velocity"],
+                'Limited_v': lim,
+            })
+            df1.to_csv(save_fname_v, index=False)
+            df2 = pd.DataFrame({
+                'Original': ora,
+                'Limited': lima
+            })
+            df2.to_csv(save_fname_a, index=False)
+
     
     def update_plot(self):
         self.widg2.setHidden(False)
