@@ -26,7 +26,8 @@ class PlotHandler():
         pg.setConfigOptions(antialias=True)
         self.app = QtGui.QApplication([])
         self.filename = ""
-        self.limit = 0.0
+        self.ulimit = 0.0
+        self.dlimit = 0.0
 
     
     def initializePlot(self):
@@ -49,40 +50,52 @@ class PlotHandler():
         self.selectFileBtn = QtGui.QPushButton("Select file")
         self.saveFileBtn = QtGui.QPushButton("Save file")
         self.update_d = QtGui.QPushButton("Generate!")
-        self.slider = QSlider(QtCore.Qt.Horizontal)
-        self.slider.setRange(0, 100)
-        self.slider.setSingleStep(1)
-        self.slidervalue = QtGui.QLabel("- m/s^2"); self.slidervalue.setAlignment(pg.QtCore.Qt.AlignCenter)
+        self.uslider = QSlider(QtCore.Qt.Horizontal)
+        self.uslider.setRange(0, 100)
+        self.uslider.setSingleStep(1)
+        self.uslidervalue = QtGui.QLabel("- m/s^2"); self.uslidervalue.setAlignment(pg.QtCore.Qt.AlignCenter)
+        self.dslider = QSlider(QtCore.Qt.Horizontal)
+        self.dslider.setRange(0, 100)
+        self.dslider.setSingleStep(1)
+        self.dslidervalue = QtGui.QLabel("- m/s^2"); self.dslidervalue.setAlignment(pg.QtCore.Qt.AlignCenter)
         widg1.setStyleSheet("background-color: rgb(255, 255, 255); color: rgb(40, 40, 40);")
         dock1.setStyleSheet("background-color: rgb(255, 255, 255);")
         dock2.setStyleSheet("background-color: rgb(255, 255, 255);")
         self.csv1Label.setStyleSheet("font: 12pt; color: rgb(40, 40, 40)")
-        self.slidervalue.setStyleSheet("font: 10pt; color: rgb(40, 40, 40)")
+        self.uslidervalue.setStyleSheet("font: 10pt; color: rgb(40, 40, 40)")
         widg1.addWidget(self.selectFileBtn, row=1, col=2)
         widg1.addWidget(self.saveFileBtn, row=1, col=3)
         widg1.addWidget(self.csv1Label, row=1, col=1)
         widg1.addWidget(self.update_d, row=2, col=3)
-        widg1.addWidget(self.slider, row=2, col=1)
-        widg1.addWidget(self.slidervalue, row=2, col=2)
+        widg1.addWidget(self.uslider, row=2, col=1)
+        widg1.addWidget(self.uslidervalue, row=2, col=2)
+        widg1.addWidget(self.dslider, row=3, col=1)
+        widg1.addWidget(self.dslidervalue, row=3, col=2)
         dock1.addWidget(widg1)
         self.state = None
         self.widg2 = MplCanvas(self, width=5, height=4, dpi=100)
         dock2.addWidget(self.widg2)
         self.widg2.setHidden(True)
-        if ((self.filename != "") and (self.limit > 0.0)):
+        if ((self.filename != "") and ((self.ulimit + self.dlimit) > 0.0)):
             self.update_plot()
 
         self.selectFileBtn.clicked.connect(self.selectCsv)
         self.saveFileBtn.clicked.connect(self.saveCsv)
         self.textSpeedArray = np.empty(1, dtype=object)
-        self.slider.valueChanged.connect(self.ValueHandler)
+        self.uslider.valueChanged.connect(self.uValueHandler)
+        self.dslider.valueChanged.connect(self.dValueHandler)
         self.update_d.clicked.connect(self.update_plot)
         self.win.show()
 
-    def ValueHandler(self,value):   
-        scaledValue = float(value)/20
-        self.slidervalue.setText(str(scaledValue) + " [m/s^2]")
-        self.limit = scaledValue
+    def uValueHandler(self,value):   
+        uscaledValue = float(value)/20
+        self.uslidervalue.setText(str(uscaledValue) + " [m/s^2]")
+        self.ulimit = uscaledValue
+
+    def dValueHandler(self,value):   
+        dscaledValue = float(value)/20
+        self.dslidervalue.setText(str(dscaledValue) + " [m/s^2]")
+        self.dlimit = dscaledValue
     
     def selectCsv(self):
         dlg_open = QtGui.QFileDialog()
