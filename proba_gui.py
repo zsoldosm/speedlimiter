@@ -47,8 +47,12 @@ class PlotHandler():
         area.addDock(dock2, "bottom", dock1)
         widg1 = pg.LayoutWidget()
         self.csv1Label = QtGui.QLabel("none"); self.csv1Label.setAlignment(pg.QtCore.Qt.AlignCenter)
+        self.usliderLabel = QtGui.QLabel("Acceleration limit"); self.usliderLabel.setAlignment(pg.QtCore.Qt.AlignCenter)
+        self.dsliderLabel = QtGui.QLabel("Deceleration limit"); self.dsliderLabel.setAlignment(pg.QtCore.Qt.AlignCenter)
         self.selectFileBtn = QtGui.QPushButton("Select file")
+        self.selectFileBtn.setStyleSheet("font: 10pt; color: rgb(40, 40, 40)")
         self.saveFileBtn = QtGui.QPushButton("Save file")
+        self.saveFileBtn.setStyleSheet("font: 10pt; color: rgb(40, 40, 40)")
         self.update_d = QtGui.QPushButton("Generate!")
         self.uslider = QSlider(QtCore.Qt.Horizontal)
         self.uslider.setRange(0, 100)
@@ -63,14 +67,16 @@ class PlotHandler():
         dock2.setStyleSheet("background-color: rgb(255, 255, 255);")
         self.csv1Label.setStyleSheet("font: 12pt; color: rgb(40, 40, 40)")
         self.uslidervalue.setStyleSheet("font: 10pt; color: rgb(40, 40, 40)")
-        widg1.addWidget(self.selectFileBtn, row=1, col=2)
-        widg1.addWidget(self.saveFileBtn, row=1, col=3)
-        widg1.addWidget(self.csv1Label, row=1, col=1)
-        widg1.addWidget(self.update_d, row=2, col=3)
-        widg1.addWidget(self.uslider, row=2, col=1)
-        widg1.addWidget(self.uslidervalue, row=2, col=2)
-        widg1.addWidget(self.dslider, row=3, col=1)
-        widg1.addWidget(self.dslidervalue, row=3, col=2)
+        widg1.addWidget(self.selectFileBtn, row=0, col=1)
+        widg1.addWidget(self.saveFileBtn, row=0, col=3)
+        widg1.addWidget(self.csv1Label, row=0, col=2)
+        widg1.addWidget(self.usliderLabel, row=1, col=1)
+        widg1.addWidget(self.update_d, row = 1, col = 4)
+        widg1.addWidget(self.uslider, row=1, col=2)
+        widg1.addWidget(self.uslidervalue, row=1, col=3)
+        widg1.addWidget(self.dsliderLabel, row=2, col=1)
+        widg1.addWidget(self.dslider, row=2, col=2)
+        widg1.addWidget(self.dslidervalue, row=2, col=3)
         dock1.addWidget(widg1)
         self.state = None
         self.widg2 = MplCanvas(self, width=5, height=4, dpi=100)
@@ -275,8 +281,8 @@ class PlotHandler():
         for item in v:
             v_lim.append(item)
         for i in range(0, len(v)-1):
-            if (((v[i+1] - v_lim[i])/dt[i]) >= (self.limit * 3.6)):
-                v_lim[i+1] = round((v_lim[i] + (self.limit * 3.6 * dt[i])), 4)
+            if (((v[i+1] - v_lim[i])/dt[i]) >= (self.ulimit * 3.6)):
+                v_lim[i+1] = round((v_lim[i] + (self.ulimit * 3.6 * dt[i])), 4)
             else: v_lim[i+1] = v[i+1]
 
         v_lim_2 = []
@@ -285,8 +291,8 @@ class PlotHandler():
         v_lim_2[-1] = 0
 
         for j in range(len(v)-1, 0, -1):
-            if ((v_lim[j-1] - v_lim_2[j]) >= (self.limit * 3.6 * dt[j-1])):
-                v_lim_2[j-1] = round((v_lim_2[j] + (self.limit * 3.6 * dt[j-1])), 4)
+            if ((v_lim[j-1] - v_lim_2[j]) >= (self.dlimit * 3.6 * dt[j-1])):
+                v_lim_2[j-1] = round((v_lim_2[j] + (self.dlimit * 3.6 * dt[j-1])), 4)
             else: v_lim_2[j-1] = v_lim[j-1]
 
         return v_lim_2
