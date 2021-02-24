@@ -120,21 +120,17 @@ class PlotHandler():
         sfn = QtCore.QStringListModel()
         if dlg_save.exec_():
             sfn = dlg_save.selectedFiles()
-            save_fname_v = str(sfn[0]) + "_comp_velo.csv"
-            save_fname_a = str(sfn[0]) + "_comp_acc.csv"
+            save_fname = str(sfn[0])
             lim = np.asarray(self.limiter(), order='F')
-            ora = np.asarray(self.del_accelerate(), order='F')
-            lima = np.asarray(self.del_accelerate_l(), order='F')
             df1 = pd.DataFrame({
-                'Original_v': self.data()["velocity"],
-                'Limited_v': lim,
+                'x': self.data()['x'],
+                'y': self.data()['y'],
+                'z': self.data()['z'],
+                'yaw': self.data()['yaw'],
+                'velocity': lim,
+                'change_flag': self.data()['change_flag'] 
             })
-            df1.to_csv(save_fname_v, index=False)
-            df2 = pd.DataFrame({
-                'Original': ora,
-                'Limited': lima
-            })
-            df2.to_csv(save_fname_a, index=False)
+            df1.to_csv(save_fname, index=False)
 
     
     def update_plot(self):
