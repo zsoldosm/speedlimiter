@@ -10,7 +10,7 @@ import pyqtgraph as pg
 import pyqtgraph.Qt as qtgqt
 import pyqtgraph.dockarea as darea
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QSlider, QWidget
+from PyQt5.QtWidgets import QApplication, QMainWindow, QSlider, QWidget, QFileDialog, QInputDialog
 from PyQt5 import QtCore, QtGui
 #import rospy, rospkg, roslaunch
 import numpy as np
@@ -58,15 +58,18 @@ class PlotHandler():
         self.uslider.setRange(0, 100)
         self.uslider.setSingleStep(1)
         self.uslidervalue = QtGui.QLabel("- m/s^2"); self.uslidervalue.setAlignment(pg.QtCore.Qt.AlignCenter)
+        self.usliderLabel.setStyleSheet("font: 10pt; color: rgb(40, 40, 40)")
         self.dslider = QSlider(QtCore.Qt.Horizontal)
         self.dslider.setRange(0, 100)
         self.dslider.setSingleStep(1)
         self.dslidervalue = QtGui.QLabel("- m/s^2"); self.dslidervalue.setAlignment(pg.QtCore.Qt.AlignCenter)
+        self.dsliderLabel.setStyleSheet("font: 10pt; color: rgb(40, 40, 40)")
         widg1.setStyleSheet("background-color: rgb(255, 255, 255); color: rgb(40, 40, 40);")
         dock1.setStyleSheet("background-color: rgb(255, 255, 255);")
         dock2.setStyleSheet("background-color: rgb(255, 255, 255);")
         self.csv1Label.setStyleSheet("font: 12pt; color: rgb(40, 40, 40)")
         self.uslidervalue.setStyleSheet("font: 10pt; color: rgb(40, 40, 40)")
+        self.dslidervalue.setStyleSheet("font: 10pt; color: rgb(40, 40, 40)")
         widg1.addWidget(self.selectFileBtn, row=0, col=1)
         widg1.addWidget(self.saveFileBtn, row=0, col=3)
         widg1.addWidget(self.csv1Label, row=0, col=2)
@@ -85,8 +88,8 @@ class PlotHandler():
         if ((self.filename != "") and ((self.ulimit + self.dlimit) > 0.0)):
             self.update_plot()
 
-        self.selectFileBtn.clicked.connect(self.selectCsv)
-        self.saveFileBtn.clicked.connect(self.saveCsv)
+        self.selectFileBtn.clicked.connect(self.openFileNameDialog)
+        self.saveFileBtn.clicked.connect(self.saveFileDialog)
         self.textSpeedArray = np.empty(1, dtype=object)
         self.uslider.valueChanged.connect(self.uValueHandler)
         self.dslider.valueChanged.connect(self.dValueHandler)
@@ -102,25 +105,17 @@ class PlotHandler():
         dscaledValue = float(value)/20
         self.dslidervalue.setText(str(dscaledValue) + " [m/s^2]")
         self.dlimit = dscaledValue
-    
-    def selectCsv(self):
-        dlg_open = QtGui.QFileDialog()
-        dlg_open.setFileMode(qtgqt.QtGui.QFileDialog.AnyFile)
-        dlg_open.selectNameFilter("CSV files (*.csv)")
-        filenames = QtCore.QStringListModel()
-        if dlg_open.exec_():
-            filenames = dlg_open.selectedFiles()
-            self.csv1Label.setText(os.path.basename(str(filenames[0])))
-            self.filename = str(filenames[0])
 
-    def saveCsv(self):
-        dlg_save = QtGui.QFileDialog()
-        dlg_save.setFileMode(qtgqt.QtGui.QFileDialog.AnyFile)
-        dlg_save.selectNameFilter("CSV files (*.csv)")
-        sfn = QtCore.QStringListModel()
-        if dlg_save.exec_():
-            sfn = dlg_save.selectedFiles()
-            save_fname = str(sfn[0])
+    def openFileNameDialog(self):
+        filename, _filter = QFileDialog.getOpenFileName(None,"Open...", filter='CSV files (*.csv)')
+        if filename:
+            self.csv1Label.setText(os.path.basename(str(filename)))
+            self.filename = str(filename)
+
+    def saveFileDialog(self):
+        fileName, _ = QFileDialog.getSaveFileName(None,"Save to...", filter='CSV Files (*.csv)')
+        if fileName:
+            save_fname = str(fileName)
             lim = np.asarray(self.limiter(), order='F')
             df1 = pd.DataFrame({
                 'x': self.data()['x'],
