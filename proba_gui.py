@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Waypoint and map editor
+Velocity limiter
 """
 
 import subprocess
