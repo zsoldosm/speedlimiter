@@ -49,11 +49,13 @@ class PlotHandler():
         self.csv1Label = QtGui.QLabel("none"); self.csv1Label.setAlignment(pg.QtCore.Qt.AlignCenter)
         self.usliderLabel = QtGui.QLabel("Acceleration limit"); self.usliderLabel.setAlignment(pg.QtCore.Qt.AlignCenter)
         self.dsliderLabel = QtGui.QLabel("Deceleration limit"); self.dsliderLabel.setAlignment(pg.QtCore.Qt.AlignCenter)
+        
         self.selectFileBtn = QtGui.QPushButton("Select file")
         self.selectFileBtn.setStyleSheet("font: 10pt; color: rgb(40, 40, 40)")
         self.saveFileBtn = QtGui.QPushButton("Save file")
         self.saveFileBtn.setStyleSheet("font: 10pt; color: rgb(40, 40, 40)")
         self.update_d = QtGui.QPushButton("Generate!")
+        
         self.uslider = QSlider(QtCore.Qt.Horizontal)
         self.uslider.setRange(0, 100)
         self.uslider.setSingleStep(1)
@@ -64,12 +66,14 @@ class PlotHandler():
         self.dslider.setSingleStep(1)
         self.dslidervalue = QtGui.QLabel("- m/s^2"); self.dslidervalue.setAlignment(pg.QtCore.Qt.AlignCenter)
         self.dsliderLabel.setStyleSheet("font: 10pt; color: rgb(40, 40, 40)")
+        
         widg1.setStyleSheet("background-color: rgb(255, 255, 255); color: rgb(40, 40, 40);")
         dock1.setStyleSheet("background-color: rgb(255, 255, 255);")
         dock2.setStyleSheet("background-color: rgb(255, 255, 255);")
         self.csv1Label.setStyleSheet("font: 12pt; color: rgb(40, 40, 40)")
         self.uslidervalue.setStyleSheet("font: 10pt; color: rgb(40, 40, 40)")
         self.dslidervalue.setStyleSheet("font: 10pt; color: rgb(40, 40, 40)")
+        
         widg1.addWidget(self.selectFileBtn, row=0, col=1)
         widg1.addWidget(self.saveFileBtn, row=0, col=3)
         widg1.addWidget(self.csv1Label, row=0, col=2)
@@ -81,6 +85,7 @@ class PlotHandler():
         widg1.addWidget(self.dslider, row=2, col=2)
         widg1.addWidget(self.dslidervalue, row=2, col=3)
         dock1.addWidget(widg1)
+        
         self.state = None
         self.widg2 = MplCanvas(self, width=5, height=4, dpi=100)
         dock2.addWidget(self.widg2)
@@ -96,23 +101,27 @@ class PlotHandler():
         self.update_d.clicked.connect(self.update_plot)
         self.win.show()
 
-    def uValueHandler(self,value):   
+    def uValueHandler(self,value):
+        """Slider értékeit skálázza 0.0 - 5.0 tartományba, 1/20 lépésközzel"""
         uscaledValue = float(value)/20
         self.uslidervalue.setText(str(uscaledValue) + " [m/s^2]")
         self.ulimit = uscaledValue
 
-    def dValueHandler(self,value):   
+    def dValueHandler(self,value):
+        """Slider értékeit skálázza 0 - 5 tartományba, 1/20 lépésközzel"""   
         dscaledValue = float(value)/20
         self.dslidervalue.setText(str(dscaledValue) + " [m/s^2]")
         self.dlimit = dscaledValue
 
     def openFileNameDialog(self):
+        """Felugró ablakos fájl kiválasztás .csv filterrel"""
         filename, _filter = QFileDialog.getOpenFileName(None,"Open...", filter='CSV files (*.csv)')
         if filename:
             self.csv1Label.setText(os.path.basename(str(filename)))
             self.filename = str(filename)
 
     def saveFileDialog(self):
+        """Felugró ablakos mentés .csv kiterjesztéssel"""
         fileName, _ = QFileDialog.getSaveFileName(None,"Save to...", filter='CSV Files (*.csv)')
         if fileName:
             save_fname = str(fileName)
@@ -129,6 +138,7 @@ class PlotHandler():
 
     
     def update_plot(self):
+        """Diagramok frissítése gombnyomásra"""
         self.widg2.setHidden(False)
         self.widg2.vt1.cla()
         self.widg2.vt2.cla()
@@ -140,6 +150,7 @@ class PlotHandler():
 
 
     def plot_diags(self):
+        """Sebesség- és gyorsulás diagramok kirajzoltatása"""
         x1 = self.time()
         y1 = self.data()["velocity"]
         x2 = self.time()
@@ -301,7 +312,6 @@ class MplCanvas(FigureCanvasQTAgg):
         super(MplCanvas, self).__init__(fig)
 
 if __name__ == "__main__":
-    print("GUI started")
     ph = PlotHandler()
     ph.initializePlot()
 
